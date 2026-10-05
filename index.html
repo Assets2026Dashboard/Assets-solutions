@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assets Solutions - Elite Management Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #07130e;
+            --card-dark: #0f231a;
+            --accent-green: #14805e;
+            --accent-green-light: #22c55e;
+            --accent-green-dark: #0d543e;
+            --text-light: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border-green: rgba(20, 128, 94, 0.4);
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-light); padding: 15px; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        #login-screen {
+            background: var(--card-dark); max-width: 420px; margin: 40px auto; padding: 30px; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px var(--border-green); 
+            text-align: center; border: 1px solid var(--border-green);
+        }
+        .brand-banner { width: 100%; height: 110px; border-radius: 12px; object-fit: cover; margin-bottom: 15px; border: 1px solid var(--border-green); background: #111; }
+        .brand-logo { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin: -55px auto 10px auto; display: block; border: 3px solid var(--card-dark); box-shadow: 0 4px 10px rgba(0,0,0,0.5); background: #fff; }
+        
+        #login-screen h2 { margin-bottom: 5px; color: var(--success); font-size: 20px; font-weight: 700; }
+        #login-screen p { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+        .form-control { width: 100%; padding: 10px 14px; margin: 8px 0; background: var(--bg-dark); border: 1px solid var(--border-green); border-radius: 8px; font-size: 13px; color: #fff; outline: none; }
+        .btn { background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark)); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; box-shadow: 0 4px 12px rgba(20, 128, 94, 0.3); }
+        .btn-danger { background: var(--danger); color: white; box-shadow: none; }
+        .btn-success { background: var(--success); color: white; box-shadow: none; }
+        .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 6px; width: auto; font-weight: 600; }
+
+        #dashboard { display: none; }
+        header { display: flex; justify-content: space-between; align-items: center; background: var(--card-dark); color: white; padding: 12px 20px; border-radius: 14px; margin-bottom: 15px; border: 1px solid var(--border-green); flex-wrap: wrap; gap: 10px; }
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .header-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-green); background: #fff; }
+        header h2 { font-size: 15px; font-weight: 700; color: var(--success); }
+        header span { font-size: 11px; color: var(--text-muted); display: block; }
+        .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        
+        .stats-bar { display: flex; background: var(--card-dark); border: 1px solid var(--border-green); padding: 12px 20px; border-radius: 12px; margin-bottom: 15px; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .stat-item { display: flex; align-items: center; gap: 10px; }
+        .stat-item span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; }
+        .stat-item h4 { font-size: 15px; color: #fff; font-weight: 700; }
+
+        .sync-box { background: var(--card-dark); border: 1px solid var(--border-green); padding: 12px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        
+        .tabs { display: flex; gap: 6px; margin-bottom: 12px; border-bottom: 2px solid var(--card-dark); padding-bottom: 8px; overflow-x: auto; align-items: center; }
+        .tab-btn { background: var(--card-dark); border: 1px solid var(--border-green); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+        .tab-btn.active { background: var(--accent-green); color: #fff; border-color: var(--success); }
+        .add-tab-btn { background: transparent; border: 1px dashed var(--success); color: var(--success); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; }
+        
+        .sub-tabs { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; }
+        .sub-tab-btn { background: var(--bg-dark); border: 1px solid var(--border-green); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-muted); font-size: 11px; white-space: nowrap; }
+        .sub-tab-btn.active { background: var(--accent-green); color: #fff; border-color: var(--success); }
+
+        .tab-content { display: none; background: var(--card-dark); padding: 15px; border-radius: 14px; border: 1px solid var(--border-green); }
+        .tab-content.active { display: block; }
+        .sub-content { display: none; }
+        .sub-content.active { display: block; }
+
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .action-bar h3 { font-size: 15px; color: var(--success); font-weight: 600; }
+
+        .table-responsive { width: 100%; overflow-x: auto; max-height: 500px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 2px; margin-bottom: 10px; font-size: 12px; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(20, 128, 94, 0.2); white-space: nowrap; }
+        th { background-color: var(--bg-dark); color: var(--success); font-weight: 600; position: sticky; top: 0; z-index: 10; }
+        tr:hover { background-color: rgba(20, 128, 94, 0.08); cursor: pointer; }
+
+        .notes-cell { max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); cursor: pointer; }
+        .notes-cell:hover { color: var(--success); text-decoration: underline; }
+
+        .badge { padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; background: rgba(20, 128, 94, 0.2); color: var(--success); border: 1px solid var(--border-green); }
+        .badge-safe { background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: var(--success); }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: var(--warning); }
+        
+        .filter-box { background: var(--bg-dark); padding: 12px; border-radius: 10px; border: 1px solid var(--border-green); margin-bottom: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: flex-end; }
+        .report-result-card { background: var(--bg-dark); padding: 15px; border-radius: 10px; border-left: 4px solid var(--success); margin-top: 12px; border: 1px solid var(--border-green); font-size: 13px; line-height: 1.6; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+        .modal-content { background: var(--card-dark); padding: 20px; border-radius: 16px; width: 100%; max-width: 500px; border: 1px solid var(--border-green); max-height: 90vh; overflow-y: auto; }
+        .close-btn { float: right; cursor: pointer; font-size: 20px; color: var(--text-muted); }
+        
+        .settings-section { background: var(--bg-dark); border: 1px solid var(--border-green); padding: 12px; border-radius: 10px; margin-bottom: 12px; }
+        .settings-section h4 { font-size: 13px; color: var(--success); margin-bottom: 8px; border-bottom: 1px solid var(--border-green); padding-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <img src="" alt="Banner" class="brand-banner" id="login-banner-img">
+        <img src="" alt="Logo" class="brand-logo" id="login-logo-img">
+        <h2 id="login-company-name">Assets Solutions</h2>
+        <p>Call Center Management System</p>
+        <input type="text" id="username" class="form-control" placeholder="Enter Username (e.g., Leo, Grace)">
+        <input type="password" id="password" class="form-control" placeholder="Enter Password">
+        <button class="btn" onclick="login()" style="margin-top: 10px;">Sign In</button>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="container">
+        <header>
+            <div class="header-brand">
+                <img src="" alt="Logo" class="header-logo" id="header-logo-img">
+                <div>
+                    <h2 id="welcome-banner">Welcome, Leo</h2>
+                    <span id="header-subtitle">Assets Solutions Portal</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-sm" style="background:var(--success); color:#000;" onclick="openAiModal()">🤖 Ask AI</button>
+                <button class="btn btn-sm" id="settings-btn-id" style="background:var(--accent-green); color:#fff;" onclick="openSettingsModal()">⚙ Settings</button>
+                <button class="btn btn-danger btn-sm" onclick="logout()">Sign Out</button>
+            </div>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div><span>Monthly Bonus Total</span><h4 id="stat-monthly-bonus" style="color:var(--success);">$0</h4></div>
+            </div>
+            <div class="stat-item" style="border-left: 1px solid var(--border-green); padding-left: 20px;">
+                <div><span>Coach MVP (Selected Period)</span><h4 id="stat-coach-mvp">None</h4></div>
+            </div>
+            <div class="stat-item" style="border-left: 1px solid var(--border-green); padding-left: 20px;">
+                <div><span>AE MVP (Selected Period)</span><h4 id="stat-ae-mvp">None</h4></div>
+            </div>
+        </div>
+
+        <div class="tabs" id="main-tabs-container">
+            <button class="tab-btn active" id="tab-btn-calls" onclick="switchTab('calls-tab', event)">Team Calls</button>
+            <button class="tab-btn" id="tab-btn-coachboard" onclick="switchTab('coachboard-tab', event)">Coach Scoreboard</button>
+            <button class="tab-btn" id="tab-btn-aeboard" onclick="switchTab('aeboard-tab', event)">AE Scoreboard</button>
+            <button class="tab-btn" id="tab-btn-reports" onclick="switchTab('reports-tab', event)">Advanced Reports</button>
+            <button class="tab-btn" id="tab-btn-bonus" onclick="switchTab('bonus-tab', event)">Bonus</button>
+            <button class="tab-btn" id="tab-btn-deduction" onclick="switchTab('deduction-tab', event)">Deductions</button>
+            <button class="add-tab-btn" id="tab-btn-addcat" onclick="openCustomTabModal()">+ Add Category</button>
+        </div>
+
+        <!-- Team Calls Tab -->
+        <div id="calls-tab" class="tab-content active">
+            <div class="sync-box">
+                <div style="flex:1;">
+                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Upload Team Calls Excel Sheet (.xlsx / .xls)</label>
+                    <input type="file" id="excel-file-input" class="form-control" accept=".xlsx, .xls" style="margin:0; padding:6px;">
+                </div>
+                <button class="btn btn-sm" style="background:var(--success); color:#000; height:38px; margin-top:16px;" onclick="syncExcelWorkbook('calls')">Parse Calls Sheets</button>
+            </div>
+
+            <div class="filter-box">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter Month / Date</label>
+                    <select id="calls-filter-period" class="form-control" style="margin:0;" onchange="toggleCallsDateInputs()">
+                        <option value="all">All Time (كل السجل)</option>
+                        <option value="month">Select Month (اختيار شهر)</option>
+                        <option value="single">Specific Day (يوم معين)</option>
+                        <option value="range">Custom Range (فترة محددة)</option>
+                    </select>
+                </div>
+                <div id="calls-month-wrap">
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Choose Month</label>
+                    <input type="month" id="calls-f-month" class="form-control" style="margin:0;" onchange="renderAllTables()">
+                </div>
+                <div id="calls-single-wrap" style="display:none;">
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Choose Date</label>
+                    <input type="date" id="calls-f-single" class="form-control" style="margin:0;" onchange="renderAllTables()">
+                </div>
+                <div id="calls-range-start-wrap" style="display:none;">
+                    <label style="font-size: 10px; color: var(--text-muted);">From Date</label>
+                    <input type="date" id="calls-f-start" class="form-control" style="margin:0;" onchange="renderAllTables()">
+                </div>
+                <div id="calls-range-end-wrap" style="display:none;">
+                    <label style="font-size: 10px; color: var(--text-muted);">To Date</label>
+                    <input type="date" id="calls-f-end" class="form-control" style="margin:0;" onchange="renderAllTables()">
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <h3>Team Performance Database</h3>
+                <button class="btn btn-success btn-sm" onclick="openModal()">+ Add Review</button>
+            </div>
+
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" id="sub-btn-Leo" onclick="switchSubTab('Leo', event)">Coach: Leo</button>
+                <button class="sub-tab-btn" id="sub-btn-Grace" onclick="switchSubTab('Grace', event)">Coach: Grace</button>
+                <button class="sub-tab-btn" id="sub-btn-Ashely" onclick="switchSubTab('Ashely', event)">AE: Ashely</button>
+                <button class="sub-tab-btn" id="sub-btn-Mia" onclick="switchSubTab('Mia', event)">Mia</button>
+            </div>
+
+            <div id="sub-Leo" class="sub-content active">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th><th>Name</th><th>Phone</th><th>Email</th><th>Etsy Link</th><th>Done</th><th>Call #</th><th>Notes</th><th>Status</th><th>Rate</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leo-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="sub-Grace" class="sub-content">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th><th>Name</th><th>Phone</th><th>Email</th><th>Etsy Link</th><th>Done</th><th>Call #</th><th>Notes</th><th>Status</th><th>Rate</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grace-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="sub-Ashely" class="sub-content">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th><th>Name</th><th>Phone</th><th>Email</th><th>Notes</th><th>Verdict</th><th>Follow-up</th><th>Rate</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ashely-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="sub-Mia" class="sub-content">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th><th>Name</th><th>Phone</th><th>Email</th><th>Notes</th><th>Verdict</th><th>Rate</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mia-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coach Scoreboard Tab -->
+        <div id="coachboard-tab" class="tab-content">
+            <div class="action-bar">
+                <h3>Coach Scoreboard (Custom Period Analysis)</h3>
+            </div>
+            <div class="filter-box" style="margin-bottom:12px;">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">From Date</label>
+                    <input type="date" id="coach-board-start" class="form-control" style="margin:0;" value="2026-10-01" onchange="renderScoreboards()">
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">To Date</label>
+                    <input type="date" id="coach-board-end" class="form-control" style="margin:0;" value="2026-10-31" onchange="renderScoreboards()">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Coach Name</th><th>Total Calls in Period</th><th>Avg Rate in Period</th><th>Performance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coachboard-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE Scoreboard Tab -->
+        <div id="aeboard-tab" class="tab-content">
+            <div class="action-bar">
+                <h3>AE Scoreboard (Custom Period Analysis)</h3>
+            </div>
+            <div class="filter-box" style="margin-bottom:12px;">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">From Date</label>
+                    <input type="date" id="ae-board-start" class="form-control" style="margin:0;" value="2026-10-01" onchange="renderScoreboards()">
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">To Date</label>
+                    <input type="date" id="ae-board-end" class="form-control" style="margin:0;" value="2026-10-31" onchange="renderScoreboards()">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Account Executive</th><th>Total Records in Period</th><th>Avg Rate in Period</th><th>Performance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="aeboard-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bonus Tab -->
+        <div id="bonus-tab" class="tab-content">
+            <div class="sync-box">
+                <div style="flex:1;">
+                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Upload Bonus Excel Sheet (.xlsx / .xls)</label>
+                    <input type="file" id="bonus-file-input" class="form-control" accept=".xlsx, .xls" style="margin:0; padding:6px;">
+                </div>
+                <button class="btn btn-sm" style="background:var(--success); color:#000; height:38px; margin-top:16px;" onclick="syncExcelWorkbook('bonus')">Parse Bonus Sheet</button>
+            </div>
+
+            <div class="action-bar">
+                <h3>Bonus Management</h3>
+                <button class="btn btn-success btn-sm" onclick="openBonusModal('Bonus')">+ Add Bonus</button>
+            </div>
+            
+            <div class="filter-box" style="margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter Member</label>
+                    <select id="bonus-filter-member" class="form-control" style="margin:0;" onchange="renderBonusTable()">
+                        <option value="All">All Members</option>
+                        <option value="Leo">Leo</option>
+                        <option value="Grace">Grace</option>
+                        <option value="Ashely">Ashely</option>
+                        <option value="Mia">Mia</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter Period Type</label>
+                    <select id="bonus-filter-period" class="form-control" style="margin:0;" onchange="toggleBonusDateInputs()">
+                        <option value="all">All Time</option>
+                        <option value="daily">Specific Day</option>
+                        <option value="range">Custom Range</option>
+                    </select>
+                </div>
+                <div id="bonus-date-container" style="display: none; grid-column: span 2; display: flex; gap: 8px;">
+                    <div style="flex:1;" id="bonus-single-date-wrap"><label style="font-size: 10px; color: var(--text-muted);">Date</label><input type="date" id="bonus-f-date" class="form-control" style="margin:0;" onchange="renderBonusTable()"></div>
+                    <div style="flex:1; display:none;" id="bonus-range-start-wrap"><label style="font-size: 10px; color: var(--text-muted);">From Date</label><input type="date" id="bonus-f-start" class="form-control" style="margin:0;" onchange="renderBonusTable()"></div>
+                    <div style="flex:1; display:none;" id="bonus-range-end-wrap"><label style="font-size: 10px; color: var(--text-muted);">To Date</label><input type="date" id="bonus-f-end" class="form-control" style="margin:0;" onchange="renderBonusTable()"></div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead><tr><th>Date</th><th>Team Member</th><th>Type</th><th>Amount</th><th>Reason / Description</th><th>Actions</th></tr></thead>
+                    <tbody id="bonus-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Deductions Tab -->
+        <div id="deduction-tab" class="tab-content">
+            <div class="sync-box">
+                <div style="flex:1;">
+                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Upload Deductions Excel Sheet (.xlsx / .xls)</label>
+                    <input type="file" id="deduction-file-input" class="form-control" accept=".xlsx, .xls" style="margin:0; padding:6px;">
+                </div>
+                <button class="btn btn-sm" style="background:var(--success); color:#000; height:38px; margin-top:16px;" onclick="syncExcelWorkbook('deduction')">Parse Deduction Sheet</button>
+            </div>
+
+            <div class="action-bar">
+                <h3>Deductions Management</h3>
+                <button class="btn btn-success btn-sm" onclick="openBonusModal('Deduction')">+ Add Deduction</button>
+            </div>
+            
+            <div class="filter-box" style="margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter Member</label>
+                    <select id="ded-filter-member" class="form-control" style="margin:0;" onchange="renderDeductionTable()">
+                        <option value="All">All Members</option>
+                        <option value="Leo">Leo</option>
+                        <option value="Grace">Grace</option>
+                        <option value="Ashely">Ashely</option>
+                        <option value="Mia">Mia</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter Period Type</label>
+                    <select id="ded-filter-period" class="form-control" style="margin:0;" onchange="toggleDedDateInputs()">
+                        <option value="all">All Time</option>
+                        <option value="daily">Specific Day</option>
+                        <option value="range">Custom Range</option>
+                    </select>
+                </div>
+                <div id="ded-date-container" style="display: none; grid-column: span 2; display: flex; gap: 8px;">
+                    <div style="flex:1;" id="ded-single-date-wrap"><label style="font-size: 10px; color: var(--text-muted);">Date</label><input type="date" id="ded-f-date" class="form-control" style="margin:0;" onchange="renderDeductionTable()"></div>
+                    <div style="flex:1; display:none;" id="ded-range-start-wrap"><label style="font-size: 10px; color: var(--text-muted);">From Date</label><input type="date" id="ded-f-start" class="form-control" style="margin:0;" onchange="renderDeductionTable()"></div>
+                    <div style="flex:1; display:none;" id="ded-range-end-wrap"><label style="font-size: 10px; color: var(--text-muted);">To Date</label><input type="date" id="ded-f-end" class="form-control" style="margin:0;" onchange="renderDeductionTable()"></div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead><tr><th>Date</th><th>Team Member</th><th>Type</th><th>Amount</th><th>Reason / Description</th><th>Actions</th></tr></thead>
+                    <tbody id="deduction-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Advanced Reports Tab -->
+        <div id="reports-tab" class="tab-content">
+            <div class="action-bar">
+                <h3>Advanced Performance & Weekly Reports</h3>
+                <button class="btn btn-success btn-sm" onclick="copyWeeklyTeamMessage()">📋 Copy Team Weekly Message</button>
+            </div>
+            <div class="filter-box">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Select Member</label>
+                    <select id="rep-member" class="form-control" style="margin:0;">
+                        <option value="All">All Team (Leo, Grace, Ashely, Mia)</option>
+                        <option value="Leo">Coach: Leo</option>
+                        <option value="Grace">Coach: Grace</option>
+                        <option value="Ashely">Account Executive: Ashely</option>
+                        <option value="Mia">Mia</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Period Type</label>
+                    <select id="rep-period" class="form-control" style="margin:0;" onchange="toggleDateInputs()">
+                        <option value="all">All Time</option>
+                        <option value="daily">Today (Daily)</option>
+                        <option value="weekly">Custom US Weekly</option>
+                        <option value="monthly">This Month (Monthly)</option>
+                        <option value="custom">Custom Date Range</option>
+                    </select>
+                </div>
+                <div id="custom-date-container" style="display: none; grid-column: span 2; display: flex; gap: 8px;">
+                    <div style="flex:1;"><label style="font-size: 10px; color: var(--text-muted);">From Date</label><input type="date" id="rep-start" class="form-control" style="margin:0;"></div>
+                    <div style="flex:1;"><label style="font-size: 10px; color: var(--text-muted);">To Date</label><input type="date" id="rep-end" class="form-control" style="margin:0;"></div>
+                </div>
+                <button class="btn" style="background: var(--accent-green); color:#fff; height: 40px;" onclick="generateCustomReport()">Generate Professional Report</button>
+            </div>
+            <div id="report-output" class="report-result-card" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Notes Viewer Modal -->
+    <div id="notes-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-btn" onclick="closeNotesModal()">&times;</span>
+            <h3 style="color:var(--success); margin-bottom:10px; font-size:15px;">Full Record Notes</h3>
+            <p id="notes-modal-text" style="font-size: 13px; color: var(--text-light); background: var(--bg-dark); padding: 12px; border-radius: 8px; border: 1px solid var(--border-green); line-height: 1.5; white-space: pre-wrap; word-break: break-word;"></p>
+        </div>
+    </div>
+
+    <!-- Modal for Adding / Editing Review -->
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="modal-title" style="color:var(--success); margin-bottom:12px; font-size:16px;">Add New Call Record</h3>
+            <input type="hidden" id="edit-row-index" value="-1">
+            <select id="new-member" class="form-control" onchange="adjustModalInputs()">
+                <option value="Leo">Coach: Leo</option>
+                <option value="Grace">Coach: Grace</option>
+                <option value="Ashely">Account Executive: Ashely</option>
+                <option value="Mia">Mia</option>
+            </select>
+            
+            <div id="modal-inputs-container"></div>
+
+            <button class="btn" style="margin-top:12px; background:var(--accent-green);" onclick="saveNewRecord()">Save to Database</button>
+        </div>
+    </div>
+
+    <!-- Modal for Bonus & Deductions -->
+    <div id="bonus-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeBonusModal()">&times;</span>
+            <h3 id="bonus-modal-title" style="color:var(--success); margin-bottom:12px; font-size:16px;">Add Record</h3>
+            <input type="hidden" id="bonus-target-type" value="Bonus">
+            <select id="bonus-member" class="form-control">
+                <option value="Leo">Leo</option>
+                <option value="Grace">Grace</option>
+                <option value="Ashely">Ashely</option>
+                <option value="Mia">Mia</option>
+            </select>
+            <input type="date" id="bonus-date" class="form-control">
+            <input type="text" id="bonus-amount" class="form-control" placeholder="Amount (e.g., $100)">
+            <input type="text" id="bonus-reason" class="form-control" placeholder="Reason / Description">
+            <button class="btn" style="margin-top:12px; background:var(--accent-green);" onclick="saveBonusRecord()">Save Record</button>
+        </div>
+    </div>
+
+    <!-- Modal for Settings & Colors -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSettingsModal()">&times;</span>
+            <h3 style="color:var(--success); margin-bottom:12px; font-size:16px;">Portal Settings & Permissions</h3>
+            
+            <div class="settings-section">
+                <h4>1. Branding & Logo (Upload from Device)</h4>
+                <label style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Upload Banner Image:</label>
+                <input type="file" id="set-banner-file" class="form-control" accept="image/*" style="margin:4px 0 8px 0; padding:5px;">
+                
+                <label style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Upload Logo Image:</label>
+                <input type="file" id="set-logo-file" class="form-control" accept="image/*" style="margin:4px 0 8px 0; padding:5px;">
+            </div>
+
+            <div class="settings-section">
+                <h4>2. Theme & Colors</h4>
+                <div style="display:flex; gap:8px;">
+                    <div style="flex:1;"><label style="font-size:10px; color:var(--text-muted);">Dark BG:</label><input type="color" id="set-color-bg" class="form-control" style="height:32px; padding:2px;" value="#07130e"></div>
+                    <div style="flex:1;"><label style="font-size:10px; color:var(--text-muted);">Card BG:</label><input type="color" id="set-color-card" class="form-control" style="height:32px; padding:2px;" value="#0f231a"></div>
+                    <div style="flex:1;"><label style="font-size:10px; color:var(--text-muted);">Accent:</label><input type="color" id="set-color-accent" class="form-control" style="height:32px; padding:2px;" value="#14805e"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>3. Users & View Permissions</h4>
+                <input type="text" id="new-username-input" class="form-control" placeholder="Username (e.g., Grace)">
+                <input type="password" id="new-password-input" class="form-control" placeholder="Password">
+                <label style="font-size:10px; color:var(--text-muted); display:block; margin-top:4px;">Allowed Section Access:</label>
+                <select id="new-user-permission" class="form-control" style="margin-top:2px;">
+                    <option value="all">Full Access (All Sections)</option>
+                    <option value="calls">Team Calls Only</option>
+                    <option value="bonus">Bonus & Deductions Only</option>
+                </select>
+            </div>
+
+            <button class="btn" style="margin-top:8px; background:var(--accent-green);" onclick="saveSettings()">Save All Settings</button>
+        </div>
+    </div>
+
+    <!-- Modal for Ask AI Assistant -->
+    <div id="ai-modal" class="modal">
+        <div class="modal-content" style="max-width: 480px;">
+            <span class="close-btn" onclick="closeAiModal()">&times;</span>
+            <h3 style="color:var(--success); margin-bottom:10px; font-size:16px;">🤖 Ask AI Assistant</h3>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">ابحث عن السجلات بالتاريخ (مثل: 2026-10-03) أو باسم العضو:</p>
+            <textarea id="ai-prompt-input" class="form-control" rows="3" placeholder="اكتب سؤالك (مثال: ليو عمل إيه يوم 2026-10-03؟ أو سجلات يوم كذا)..."></textarea>
+            <button class="btn" style="margin-top:10px; background:var(--success); color:#000;" onclick="submitAiPrompt()">بحث في السجلات</button>
+            <div id="ai-response-box" style="margin-top: 12px; font-size: 12px; color: var(--text-light); background: var(--bg-dark); padding: 12px; border-radius: 8px; border: 1px solid var(--border-green); display:none; line-height: 1.5; max-height: 250px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Custom Category -->
+    <div id="custom-tab-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeCustomTabModal()">&times;</span>
+            <h3 style="color:var(--success); margin-bottom:12px; font-size:16px;">Add New Category Section</h3>
+            <input type="text" id="custom-tab-name" class="form-control" placeholder="Category Name">
+            <button class="btn" style="margin-top:12px; background:var(--accent-green);" onclick="saveCustomTab()">Create Section</button>
+        </div>
+    </div>
+
+    <script>
+        let portalSettings = JSON.parse(localStorage.getItem('assets_portal_settings')) || {
+            bannerUrl: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80",
+            logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
+            companyName: "Assets Solutions",
+            bgColor: "#07130e",
+            cardColor: "#0f231a",
+            accentColor: "#14805e"
+        };
+
+        let usersDb = JSON.parse(localStorage.getItem('assets_users_db')) || {
+            "Leo": { pass: "Assets2026", perm: "all" },
+            "Grace": { pass: "Assets2026", perm: "calls" },
+            "Ashely": { pass: "Assets2026", perm: "all" },
+            "Mia": { pass: "Assets2026", perm: "all" }
+        };
+
+        let currentUser = "Leo";
+
+        const initialData = {
+            Leo: [
+                ["2026-10-03", "Edna Hodges", "19852644195", "ehodgesbb@gmail.com", "y.etsy.com/financedna.etsy.com", "Done", "Call 2 done", "completed the customer's store setup, verified phone and identity, and successfully published new listings on Etsy.", "SAFE", "100/100"]
+            ],
+            Grace: [
+                ["2026-10-01", "John Payne", "1234567890", "jpinptown@gmail.com", "etsy.com/shop/example", "Done", "Call 1 done", "Assisted with publishing and reviewed Printify connection with Freedom Dashboard.", "SAFE", "100/100"]
+            ],
+            Ashely: [
+                ["2026-10-04", "Angela Mitchel", "7577082128", "angela.mitchell82@gmail.com", "She said things are going well with the store setup and traffic.", "Safe", "2026-10-11", "100/100"]
+            ],
+            Mia: [
+                ["2026-10-02", "Rebecca Wendling", "16058609127", "blwendling@hotmail.com", "She feels much better about the store metrics and customer service flow.", "safe", "100/100"]
+            ],
+            Bonus: [],
+            Deduction: []
+        };
+
+        let dbData = JSON.parse(localStorage.getItem('assets_permanent_db')) || initialData;
+        if(!dbData['Deduction']) dbData['Deduction'] = [];
+        let customTabs = JSON.parse(localStorage.getItem('assets_custom_tabs')) || [];
+
+        function applyBranding() {
+            document.getElementById('login-banner-img').src = portalSettings.bannerUrl;
+            document.getElementById('login-logo-img').src = portalSettings.logoUrl;
+            document.getElementById('login-company-name').innerText = portalSettings.companyName;
+            
+            document.getElementById('header-logo-img').src = portalSettings.logoUrl;
+            document.getElementById('header-subtitle').innerText = portalSettings.companyName + " Portal";
+
+            if(portalSettings.bgColor) document.documentElement.style.setProperty('--bg-dark', portalSettings.bgColor);
+            if(portalSettings.cardColor) document.documentElement.style.setProperty('--card-dark', portalSettings.cardColor);
+            if(portalSettings.accentColor) document.documentElement.style.setProperty('--accent-green', portalSettings.accentColor);
+        }
+
+        function login() {
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            let userObj = usersDb[u];
+            if(userObj && (userObj.pass === p || userObj === p)) {
+                currentUser = u;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('welcome-banner').innerText = "Welcome, " + u;
+                
+                applyUserPermissions(userObj.perm);
+
+                renderAllTables();
+                renderCustomTabs();
+                renderBonusTable();
+                renderDeductionTable();
+                renderScoreboards();
+            } else { 
+                alert('Invalid Username or Password'); 
+            }
+        }
+
+        function applyUserPermissions(perm) {
+            const reportsTab = document.getElementById('tab-btn-reports');
+            const bonusTab = document.getElementById('tab-btn-bonus');
+            const dedTab = document.getElementById('tab-btn-deduction');
+            const addCatTab = document.getElementById('tab-btn-addcat');
+            const settingsBtn = document.getElementById('settings-btn-id');
+
+            if(perm === 'calls') {
+                if(reportsTab) reportsTab.style.display = 'none';
+                if(bonusTab) bonusTab.style.display = 'none';
+                if(dedTab) dedTab.style.display = 'none';
+                if(addCatTab) addCatTab.style.display = 'none';
+                if(settingsBtn) settingsBtn.style.display = 'none';
+            } else if(perm === 'bonus') {
+                if(reportsTab) reportsTab.style.display = 'none';
+                if(addCatTab) addCatTab.style.display = 'none';
+            } else {
+                if(reportsTab) reportsTab.style.display = 'block';
+                if(bonusTab) bonusTab.style.display = 'block';
+                if(dedTab) dedTab.style.display = 'block';
+                if(addCatTab) addCatTab.style.display = 'block';
+                if(settingsBtn) settingsBtn.style.display = 'inline-block';
+            }
+        }
+
+        function logout() {
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        function switchTab(tabId, evt) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+        }
+
+        function switchSubTab(member, evt) {
+            document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('sub-' + member).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        function toggleDateInputs() {
+            const period = document.getElementById('rep-period').value;
+            document.getElementById('custom-date-container').style.display = period === 'custom' ? 'flex' : 'none';
+        }
+
+        function toggleCallsDateInputs() {
+            const period = document.getElementById('calls-filter-period').value;
+            document.getElementById('calls-month-wrap').style.display = period === 'month' ? 'block' : 'none';
+            document.getElementById('calls-single-wrap').style.display = period === 'single' ? 'block' : 'none';
+            document.getElementById('calls-range-start-wrap').style.display = period === 'range' ? 'block' : 'none';
+            document.getElementById('calls-range-end-wrap').style.display = period === 'range' ? 'block' : 'none';
+            renderAllTables();
+        }
+
+        function toggleBonusDateInputs() {
+            const period = document.getElementById('bonus-filter-period').value;
+            const singleWrap = document.getElementById('bonus-single-date-wrap');
+            const startWrap = document.getElementById('bonus-range-start-wrap');
+            const endWrap = document.getElementById('bonus-range-end-wrap');
+
+            if(period === 'daily') {
+                singleWrap.style.display = 'block';
+                startWrap.style.display = 'none';
+                endWrap.style.display = 'none';
+            } else if(period === 'range') {
+                singleWrap.style.display = 'none';
+                startWrap.style.display = 'block';
+                endWrap.style.display = 'block';
+            } else {
+                singleWrap.style.display = 'none';
+                startWrap.style.display = 'none';
+                endWrap.style.display = 'none';
+            }
+            renderBonusTable();
+        }
+
+        function toggleDedDateInputs() {
+            const period = document.getElementById('ded-filter-period').value;
+            const singleWrap = document.getElementById('ded-single-date-wrap');
+            const startWrap = document.getElementById('ded-range-start-wrap');
+            const endWrap = document.getElementById('ded-range-end-wrap');
+
+            if(period === 'daily') {
+                singleWrap.style.display = 'block';
+                startWrap.style.display = 'none';
+                endWrap.style.display = 'none';
+            } else if(period === 'range') {
+                singleWrap.style.display = 'none';
+                startWrap.style.display = 'block';
+                endWrap.style.display = 'block';
+            } else {
+                singleWrap.style.display = 'none';
+                startWrap.style.display = 'none';
+                endWrap.style.display = 'none';
+            }
+            renderDeductionTable();
+        }
+
+        function showFullNotes(notesText) {
+            document.getElementById('notes-modal-text').innerText = decodeURIComponent(notesText) || 'No notes available.';
+            document.getElementById('notes-modal').style.display = 'flex';
+        }
+        function closeNotesModal() { document.getElementById('notes-modal').style.display = 'none'; }
+
+        function adjustModalInputs() {
+            const member = document.getElementById('new-member').value;
+            const container = document.getElementById('modal-inputs-container');
+            
+            if(member === 'Ashely') {
+                container.innerHTML = `
+                    <input type="date" id="field-0" class="form-control" placeholder="Date">
+                    <input type="text" id="field-1" class="form-control" placeholder="Name">
+                    <input type="text" id="field-2" class="form-control" placeholder="Phone Number">
+                    <input type="text" id="field-3" class="form-control" placeholder="Email">
+                    <textarea id="field-4" class="form-control" rows="2" placeholder="Notes"></textarea>
+                    <input type="text" id="field-5" class="form-control" placeholder="Rate / Verdict (e.g., Safe)">
+                    <input type="date" id="field-6" class="form-control" placeholder="Date Of Follow Up">
+                    <input type="text" id="field-7" class="form-control" placeholder="Rate By Number (e.g., 100/100)">
+                `;
+            } else if(member === 'Mia') {
+                container.innerHTML = `
+                    <input type="date" id="field-0" class="form-control" placeholder="Date">
+                    <input type="text" id="field-1" class="form-control" placeholder="Name">
+                    <input type="text" id="field-2" class="form-control" placeholder="Phone Number">
+                    <input type="text" id="field-3" class="form-control" placeholder="Email">
+                    <textarea id="field-4" class="form-control" rows="2" placeholder="Notes"></textarea>
+                    <input type="text" id="field-5" class="form-control" placeholder="Verdict (safe / no rate...)">
+                    <input type="text" id="field-6" class="form-control" placeholder="Rate By Number (e.g., 100/100)">
+                `;
+            } else {
+                container.innerHTML = `
+                    <input type="date" id="field-0" class="form-control" placeholder="Date of Calling">
+                    <input type="text" id="field-1" class="form-control" placeholder="Name">
+                    <input type="text" id="field-2" class="form-control" placeholder="Phone Number">
+                    <input type="text" id="field-3" class="form-control" placeholder="Email">
+                    <input type="text" id="field-4" class="form-control" placeholder="Etsy Link">
+                    <input type="text" id="field-5" class="form-control" placeholder="Connected / Done">
+                    <input type="text" id="field-6" class="form-control" placeholder="Call Number">
+                    <textarea id="field-7" class="form-control" rows="2" placeholder="Notes"></textarea>
+                    <input type="text" id="field-8" class="form-control" placeholder="Status (e.g., SAFE)">
+                    <input type="text" id="field-9" class="form-control" placeholder="Rate">
+                `;
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modal-title').innerText = "Add New Call Record";
+            document.getElementById('edit-row-index').value = "-1";
+            document.getElementById('new-member').value = 'Leo';
+            adjustModalInputs();
+            document.getElementById('field-0').value = new Date().toISOString().split('T')[0];
+            document.getElementById('add-modal').style.display = 'flex';
+        }
+
+        function editRecord(member, index) {
+            const r = dbData[member][index];
+            document.getElementById('modal-title').innerText = "Edit Call Record";
+            document.getElementById('edit-row-index').value = index;
+            document.getElementById('new-member').value = member;
+            adjustModalInputs();
+            
+            r.forEach((val, i) => {
+                const el = document.getElementById('field-' + i);
+                if(el) el.value = val || '';
+            });
+            document.getElementById('add-modal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('add-modal').style.display = 'none'; }
+
+        function openBonusModal(type) {
+            document.getElementById('bonus-target-type').value = type;
+            document.getElementById('bonus-modal-title').innerText = type === 'Bonus' ? "Add Bonus Record" : "Add Deduction Record";
+            document.getElementById('bonus-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('bonus-amount').value = '';
+            document.getElementById('bonus-reason').value = '';
+            document.getElementById('bonus-modal').style.display = 'flex';
+        }
+        function closeBonusModal() { document.getElementById('bonus-modal').style.display = 'none'; }
+
+        function saveBonusRecord() {
+            const type = document.getElementById('bonus-target-type').value;
+            const member = document.getElementById('bonus-member').value;
+            const date = document.getElementById('bonus-date').value;
+            const amount = document.getElementById('bonus-amount').value;
+            const reason = document.getElementById('bonus-reason').value;
+
+            if(!amount) return alert('Enter amount');
+            if(!dbData[type]) dbData[type] = [];
+            dbData[type].unshift([date, member, type, amount, reason]);
+            localStorage.setItem('assets_permanent_db', JSON.stringify(dbData));
+            renderBonusTable();
+            renderDeductionTable();
+            renderScoreboards();
+            closeBonusModal();
+        }
+
+        function deleteBonusOrDed(type, index) {
+            const pwd = prompt("Enter Password to securely remove this record:");
+            if(pwd === "Assets2026") {
+                dbData[type].splice(index, 1);
+                localStorage.setItem('assets_permanent_db', JSON.stringify(dbData));
+                renderBonusTable();
+                renderDeductionTable();
+                renderScoreboards();
+            } else if(pwd !== null) {
+                alert('Incorrect password!');
+            }
+        }
+
+        function renderBonusTable() {
+            const tbody = document.getElementById('bonus-table');
+            if(!tbody) return;
+            const rows = dbData['Bonus'] || [];
+            const filterMember = document.getElementById('bonus-filter-member').value;
+            const filterPeriod = document.getElementById('bonus-filter-period').value;
+            const fDate = document.getElementById('bonus-f-date').value;
+            const fStart = document.getElementById('bonus-f-start').value;
+            const fEnd = document.getElementById('bonus-f-end').value;
+
+            let filtered = rows.filter(r => {
+                let rDate = parseExcelDate(r[0]) || '';
+                let rMember = r[1] || '';
+
+                if(filterMember !== 'All' && rMember !== filterMember) return false;
+
+                if(filterPeriod === 'daily' && fDate) {
+                    if(rDate !== fDate) return false;
+                } else if(filterPeriod === 'range' && fStart && fEnd) {
+                    if(rDate < fStart || rDate > fEnd) return false;
+                }
+                return true;
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No bonus records found.</td></tr>`;
+                return;
+            }
+            let html = '';
+            filtered.forEach((r) => {
+                let realIdx = rows.indexOf(r);
+                html += `<tr>
+                    <td>${parseExcelDate(r[0]) || r[0] || ''}</td>
+                    <td><b>${r[1] || ''}</b></td>
+                    <td><span class="badge" style="background:rgba(16,185,129,0.15); color:var(--success); border-color:var(--success);">Bonus</span></td>
+                    <td style="color:var(--success); font-weight:700;">${r[3] || ''}</td>
+                    <td class="notes-cell" onclick="showFullNotes('${encodeURIComponent(r[4] || '')}')">${r[4] || ''}</td>
+                    <td><button class="btn btn-danger btn-sm" style="padding:2px 6px; font-size:10px;" onclick="deleteBonusOrDed('Bonus', ${realIdx})">Remove</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderDeductionTable() {
+            const tbody = document.getElementById('deduction-table');
+            if(!tbody) return;
+            const rows = dbData['Deduction'] || [];
+            const filterMember = document.getElementById('ded-filter-member').value;
+            const filterPeriod = document.getElementById('ded-filter-period').value;
+            const fDate = document.getElementById('ded-f-date').value;
+            const fStart = document.getElementById('ded-f-start').value;
+            const fEnd = document.getElementById('ded-f-end').value;
+
+            let filtered = rows.filter(r => {
+                let rDate = parseExcelDate(r[0]) || '';
+                let rMember = r[1] || '';
+
+                if(filterMember !== 'All' && rMember !== filterMember) return false;
+
+                if(filterPeriod === 'daily' && fDate) {
+                    if(rDate !== fDate) return false;
+                } else if(filterPeriod === 'range' && fStart && fEnd) {
+                    if(rDate < fStart || rDate > fEnd) return false;
+                }
+                return true;
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No deduction records found.</td></tr>`;
+                return;
+            }
+            let html = '';
+            filtered.forEach((r) => {
+                let realIdx = rows.indexOf(r);
+                html += `<tr>
+                    <td>${parseExcelDate(r[0]) || r[0] || ''}</td>
+                    <td><b>${r[1] || ''}</b></td>
+                    <td><span class="badge" style="background:rgba(239,68,68,0.15); color:var(--danger); border-color:var(--danger);">Deduction</span></td>
+                    <td style="color:var(--danger); font-weight:700;">${r[3] || ''}</td>
+                    <td class="notes-cell" onclick="showFullNotes('${encodeURIComponent(r[4] || '')}')">${r[4] || ''}</td>
+                    <td><button class="btn btn-danger btn-sm" style="padding:2px 6px; font-size:10px;" onclick="deleteBonusOrDed('Deduction', ${realIdx})">Remove</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function openSettingsModal() { 
+            document.getElementById('set-color-bg').value = portalSettings.bgColor || '#07130e';
+            document.getElementById('set-color-card').value = portalSettings.cardColor || '#0f231a';
+            document.getElementById('set-color-accent').value = portalSettings.accentColor || '#14805e';
+            document.getElementById('settings-modal').style.display = 'flex'; 
+        }
+        function closeSettingsModal() { document.getElementById('settings-modal').style.display = 'none'; }
+
+        function openAiModal() { document.getElementById('ai-modal').style.display = 'flex'; document.getElementById('ai-response-box').style.display = 'none'; }
+        function closeAiModal() { document.getElementById('ai-modal').style.display = 'none'; }
+
+        function submitAiPrompt() {
+            const promptText = document.getElementById('ai-prompt-input').value.trim().toLowerCase();
+            const box = document.getElementById('ai-response-box');
+            if(!promptText) return alert('اكتب طلبك للبحث');
+            
+            box.style.display = 'block';
+
+            let foundDate = "";
+            let dateMatch = promptText.match(/\d{4}-\d{2}-\d{2}/);
+            if(dateMatch) foundDate = dateMatch[0];
+
+            let memberQuery = "";
+            if(promptText.includes('ليو') || promptText.includes('leo')) memberQuery = 'Leo';
+            else if(promptText.includes('جريس') || promptText.includes('grace')) memberQuery = 'Grace';
+            else if(promptText.includes('آشلي') || promptText.includes('ashely') || promptText.includes('ashley')) memberQuery = 'Ashely';
+            else if(promptText.includes('ميا') || promptText.includes('mia')) memberQuery = 'Mia';
+
+            let matchedRecords = [];
+            let tabsToCheck = memberQuery ? [memberQuery] : ['Leo', 'Grace', 'Ashely', 'Mia'];
+
+            tabsToCheck.forEach(tab => {
+                let rows = dbData[tab] || [];
+                rows.forEach(r => {
+                    let rDate = parseExcelDate(r[0]) || '';
+                    let name = r[1] || '';
+                    let notes = (tab === 'Ashely') ? r[4] : (tab === 'Mia' ? r[4] : r[7]);
+                    let rate = '';
+                    if(tab === 'Ashely') rate = r[7];
+                    else if(tab === 'Mia') rate = r[6];
+                    else rate = r[9];
+
+                    let isMatch = false;
+                    if(foundDate && rDate === foundDate) isMatch = true;
+                    if(!foundDate && (promptText.includes(name.toLowerCase()) || promptText.includes(rDate))) isMatch = true;
+
+                    if(isMatch || (foundDate && rDate === foundDate)) {
+                        matchedRecords.push(`• <b>[${tab}]</b> التاريخ: ${rDate} | العميل: ${name} | التقييم: ${rate || 'N/A'} | الملاحظات: ${notes || 'لا توجد ملاحظات'}`);
+                    }
+                });
+            });
+
+            if(matchedRecords.length > 0) {
+                box.innerHTML = `📋 <b>نتائج البحث في قاعدة البيانات:</b><br>` + matchedRecords.join('<br><br>');
+            } else if(foundDate) {
+                box.innerHTML = `⚠️ لم يتم العثور على سجلات مطابقة للتاريخ المحدد (<b>${foundDate}</b>).`;
+            } else {
+                box.innerHTML = `⚠️ يرجى كتابة التاريخ بصيغة صحيحة (مثال: 2026-10-03) أو اسم العضو للبحث عنه بدقة.`;
+            }
+        }
+
+        function saveSettings() {
+            portalSettings.bgColor = document.getElementById('set-color-bg').value;
+            portalSettings.cardColor = document.getElementById('set-color-card').value;
+            portalSettings.accentColor = document.getElementById('set-color-accent').value;
+
+            const bannerFile = document.getElementById('set-banner-file').files[0];
+            const logoFile = document.getElementById('set-logo-file').files[0];
+
+            let bannerProcessed = false;
+            let logoProcessed = false;
+
+            function checkFinish() {
+                if((!bannerFile || bannerProcessed) && (!logoFile || logoProcessed)) {
+                    localStorage.setItem('assets_portal_settings', JSON.stringify(portalSettings));
+                    applyBranding();
+                    closeSettingsModal();
+                }
+            }
+
+            if(bannerFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    portalSettings.bannerUrl = e.target.result;
+                    bannerProcessed = true;
+                    checkFinish();
+                };
+                reader.readAsDataURL(bannerFile);
+            } else { bannerProcessed = true; }
+
+            if(logoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    portalSettings.logoUrl = e.target.result;
+                    logoProcessed = true;
+                    checkFinish();
+                };
+                reader.readAsDataURL(logoFile);
+            } else { logoProcessed = true; }
+
+            if(!bannerFile && !logoFile) {
+                localStorage.setItem('assets_portal_settings', JSON.stringify(portalSettings));
+                applyBranding();
+                closeSettingsModal();
+            }
+
+            const newU = document.getElementById('new-username-input').value.trim();
+            const newP = document.getElementById('new-password-input').value.trim();
+            const newPerm = document.getElementById('new-user-permission').value;
+
+            if(newU && newP) {
+                usersDb[newU] = { pass: newP, perm: newPerm };
+                localStorage.setItem('assets_users_db', JSON.stringify(usersDb));
+            }
+        }
+
+        function openCustomTabModal() { document.getElementById('custom-tab-modal').style.display = 'flex'; }
+        function closeCustomTabModal() { document.getElementById('custom-tab-modal').style.display = 'none'; }
+
+        function saveCustomTab() {
+            const tabName = document.getElementById('custom-tab-name').value.trim();
+            if(!tabName) return alert('Enter category name');
+            if(!customTabs.includes(tabName)) {
+                customTabs.push(tabName);
+                localStorage.setItem('assets_custom_tabs', JSON.stringify(customTabs));
+                if(!dbData[tabName]) dbData[tabName] = [];
+                localStorage.setItem('assets_permanent_db', JSON.stringify(dbData));
+            }
+            renderCustomTabs();
+            closeCustomTabModal();
+            document.getElementById('custom-tab-name').value = '';
+        }
+
+        function deleteCustomTab(tabName) {
+            const pwd = prompt("Enter Password to remove category securely:");
+            if(pwd === "Assets2026") {
+                customTabs = customTabs.filter(t => t !== tabName);
+                localStorage.setItem('assets_custom_tabs', JSON.stringify(customTabs));
+                delete dbData[tabName];
+                localStorage.setItem('assets_permanent_db', JSON.stringify(dbData));
+                
+                const wrap = document.getElementById('wrap-tab-' + tabName);
+                if(wrap) wrap.remove();
+                const content = document.getElementById('custom-tab-' + tabName);
+                if(content) content.remove();
+                
+                switchTab('calls-tab', { currentTarget: document.querySelector('.tab-btn') });
+            } else if(pwd !== null) {
+                alert('Incorrect password!');
+            }
+        }
+
+        function renderCustomTabs() {
+            const container = document.getElementById('main-tabs-container');
+            document.querySelectorAll('.custom-dynamic-tab-wrap').forEach(el => el.remove());
+
+            customTabs.forEach(tab => {
+                const wrap = document.createElement('div');
+                wrap.id = 'wrap-tab-' + tab;
+                wrap.className = 'custom-dynamic-tab-wrap';
+                wrap.style.display = 'inline-flex';
+                wrap.style.alignItems = 'center';
+                wrap.style.gap = '4px';
+
+                const btn = document.createElement('button');
+                btn.className = 'tab-btn';
+                btn.innerText = tab;
+                btn.onclick = (e) => switchTab('custom-tab-' + tab, e);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn btn-danger btn-sm';
+                delBtn.style.padding = '4px 8px';
+                delBtn.style.fontSize = '10px';
+                delBtn.innerText = 'X';
+                delBtn.onclick = () => deleteCustomTab(tab);
+
+                wrap.appendChild(btn);
+                wrap.appendChild(delBtn);
+                container.insertBefore(wrap, container.lastElementChild);
+
+                if(!document.getElementById('custom-tab-' + tab)) {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.id = 'custom-tab-' + tab;
+                    contentDiv.className = 'tab-content';
+                    contentDiv.innerHTML = `
+                        <div class="action-bar">
+                            <h3>${tab} Management</h3>
+                            <button class="btn btn-success btn-sm" onclick="openModalForCustom('${tab}')">+ Add Item</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Date</th><th>Item / Name</th><th>Reference</th><th>Details / Notes</th><th>Value / Rate</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody id="custom-table-${tab}"></tbody>
+                            </table>
+                        </div>
+                    `;
+                    document.getElementById('dashboard').appendChild(contentDiv);
+                }
+                renderCustomTableRows(tab);
+            });
+        }
+
+        function openModalForCustom(tab) {
+            openModal();
+            const select = document.getElementById('new-member');
+            if(![...select.options].some(o => o.value === tab)) {
+                const opt = document.createElement('option');
+                opt.value = tab;
+                opt.innerText = tab;
+                select.appendChild(opt);
+            }
+            select.value = tab;
+        }
+
+        function saveNewRecord() {
+            const member = document.getElementById('new-member').value;
+            const editIndex = parseInt(document.getElementById('edit-row-index').value);
+
+            let rowData = [];
+            let fieldsCount = 10;
+            if(member === 'Ashely') fieldsCount = 8;
+            if(member === 'Mia') fieldsCount = 7;
+            
+            for(let i=0; i<fieldsCount; i++) {
+                const el = document.getElementById('field-' + i);
+                rowData.push(el ? el.value.trim() : '');
+            }
+
+            if(!rowData[1]) return alert('Please enter Name.');
+
+            if(!dbData[member]) dbData[member] = [];
+
+            if(editIndex >= 0) {
+                dbData[member][editIndex] = rowData;
+            } else {
+                dbData[member].unshift(rowData);
+            }
+
+            localStorage.setItem('assets_permanent_db', JSON.stringify(dbData));
+            renderAllTables();
+            renderCustomTabs();
+            renderScoreboards();
+            closeModal();
+        }
+
+        function deleteRecord(member, index) {
+            const pwd = prompt("Enter Password to securely remove this record:");
+            if(pwd === "Assets2026") {
+                dbData[member].splice(index, 1);
+                localStorage.setItem('assets_permanent_db', JSON.stringify(dbData));
+                renderAllTables();
+                renderCustomTabs();
+                renderScoreboards();
+            } else if(pwd !== null) {
+                alert('Incorrect password!');
+            }
+        }
+
+        function renderTableRows(member, sheetRows) {
+            const filterPeriod = document.getElementById('calls-filter-period').value;
+            const fMonth = document.getElementById('calls-f-month').value;
+            const fSingle = document.getElementById('calls-f-single').value;
+            const fStart = document.getElementById('calls-f-start').value;
+            const fEnd = document.getElementById('calls-f-end').value;
+
+            let filtered = sheetRows.filter(r => {
+                let rDate = parseExcelDate(r[0]) || '';
+                if(!rDate) return true;
+
+                if(filterPeriod === 'month' && fMonth) {
+                    let mPart = rDate.substring(0, 7);
+                    if(mPart !== fMonth) return false;
+                } else if(filterPeriod === 'single' && fSingle) {
+                    if(rDate !== fSingle) return false;
+                } else if(filterPeriod === 'range' && fStart && fEnd) {
+                    if(rDate < fStart || rDate > fEnd) return false;
+                }
+                return true;
+            });
+
+            if(filtered.length === 0) {
+                let colSpan = 11;
+                if(member === 'Ashely') colSpan = 9;
+                if(member === 'Mia') colSpan = 8;
+                return `<tr><td colspan="${colSpan}" style="text-align: center; color: var(--text-muted);">No records found matching date filter.</td></tr>`;
+            }
+
+            let html = '';
+            filtered.forEach((r) => {
+                let idx = sheetRows.indexOf(r);
+                let formattedDate = parseExcelDate(r[0]) || r[0] || '';
+
+                if(member === 'Ashely') {
+                    let verdictText = String(r[5] || 'Safe');
+                    let statusClass = verdictText.toLowerCase().includes('safe') ? 'badge-safe' : 'badge-danger';
+                    let notesVal = r[4] || '';
+
+                    html += `<tr>
+                        <td onclick="editRecord('${member}', ${idx})">${formattedDate}</td>
+                        <td onclick="editRecord('${member}', ${idx})"><b>${r[1] || ''}</b></td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[2] || ''}</td>
+                        <td onclick="editRecord('${member}', ${idx})" style="color:var(--text-muted);">${r[3] || ''}</td>
+                        <td class="notes-cell" onclick="showFullNotes('${encodeURIComponent(notesVal)}')">${notesVal}</td>
+                        <td onclick="editRecord('${member}', ${idx})"><span class="badge ${statusClass}">${verdictText}</span></td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[6] || ''}</td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[7] || '100/100'}</td>
+                        <td>
+                            <button class="btn btn-sm" style="padding:2px 6px; font-size:10px; background:var(--accent-green); color:#fff;" onclick="editRecord('${member}', ${idx})">Edit</button>
+                            <button class="btn btn-danger btn-sm" style="padding:2px 6px; font-size:10px;" onclick="deleteRecord('${member}', ${idx})">Remove</button>
+                        </td>
+                    </tr>`;
+                } else if(member === 'Mia') {
+                    let verdictText = String(r[5] || 'safe').toLowerCase();
+                    let statusClass = 'badge-safe';
+                    if(verdictText.includes('no rate') || verdictText.includes('not saved')) statusClass = 'badge-danger';
+                    else if(verdictText.includes('no pick up')) statusClass = 'badge-warning';
+                    let notesVal = r[4] || '';
+
+                    html += `<tr>
+                        <td onclick="editRecord('${member}', ${idx})">${formattedDate}</td>
+                        <td onclick="editRecord('${member}', ${idx})"><b>${r[1] || ''}</b></td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[2] || ''}</td>
+                        <td onclick="editRecord('${member}', ${idx})" style="color:var(--text-muted);">${r[3] || ''}</td>
+                        <td class="notes-cell" onclick="showFullNotes('${encodeURIComponent(notesVal)}')">${notesVal}</td>
+                        <td onclick="editRecord('${member}', ${idx})"><span class="badge ${statusClass}">${r[5] || ''}</span></td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[6] || '100/100'}</td>
+                        <td>
+                            <button class="btn btn-sm" style="padding:2px 6px; font-size:10px; background:var(--accent-green); color:#fff;" onclick="editRecord('${member}', ${idx})">Edit</button>
+                            <button class="btn btn-danger btn-sm" style="padding:2px 6px; font-size:10px;" onclick="deleteRecord('${member}', ${idx})">Remove</button>
+                        </td>
+                    </tr>`;
+                } else {
+                    let statusText = String(r[8] || 'SAFE');
+                    let statusClass = statusText.toLowerCase().includes('safe') ? 'badge-safe' : 'badge-danger';
+                    let etsyLink = r[4] ? `<a href="https://${r[4].replace('https://','')}" target="_blank" style="color:var(--success); text-decoration:underline;">${r[4]}</a>` : '';
+                    let notesVal = r[7] || '';
+
+                    html += `<tr>
+                        <td onclick="editRecord('${member}', ${idx})">${formattedDate}</td>
+                        <td onclick="editRecord('${member}', ${idx})"><b>${r[1] || ''}</b></td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[2] || ''}</td>
+                        <td onclick="editRecord('${member}', ${idx})" style="color:var(--text-muted);">${r[3] || ''}</td>
+                        <td>${etsyLink}</td>
+                        <td onclick="editRecord('${member}', ${idx})"><span class="badge">${r[5] || ''}</span></td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[6] || ''}</td>
+                        <td class="notes-cell" onclick="showFullNotes('${encodeURIComponent(notesVal)}')">${notesVal}</td>
+                        <td onclick="editRecord('${member}', ${idx})"><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td onclick="editRecord('${member}', ${idx})">${r[9] || 'NO RATE'}</td>
+                        <td>
+                            <button class="btn btn-sm" style="padding:2px 6px; font-size:10px; background:var(--accent-green); color:#fff;" onclick="editRecord('${member}', ${idx})">Edit</button>
+                            <button class="btn btn-danger btn-sm" style="padding:2px 6px; font-size:10px;" onclick="deleteRecord('${member}', ${idx})">Remove</button>
+                        </td>
+                    </tr>`;
+                }
+            });
+            return html;
+        }
+
+        function renderCustomTableRows(tab) {
+            const tbody = document.getElementById('custom-table-' + tab);
+            if(!tbody) return;
+            const rows = dbData[tab] || [];
+            if(rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No items found.</td></tr>`;
+                return;
+            }
+            let html = '';
+            rows.forEach((r, idx) => {
+                let notesVal = r[3] || '';
+                html += `<tr>
+                    <td onclick="editRecord('${tab}', ${idx})">${parseExcelDate(r[0]) || r[0] || ''}</td>
+                    <td onclick="editRecord('${tab}', ${idx})"><b>${r[1] || ''}</b></td>
+                    <td onclick="editRecord('${tab}', ${idx})">${r[2] || ''}</td>
+                    <td class="notes-cell" onclick="showFullNotes('${encodeURIComponent(notesVal)}')">${notesVal}</td>
+                    <td onclick="editRecord('${tab}', ${idx})">${r[4] || ''}</td>
+                    <td onclick="editRecord('${tab}', ${idx})"><span class="badge">${r[5] || ''}</span></td>
+                    <td>
+                        <button class="btn btn-sm" style="padding:2px 6px; font-size:10px; background:var(--accent-green); color:#fff;" onclick="editRecord('${tab}', ${idx})">Edit</button>
+                        <button class="btn btn-danger btn-sm" style="padding:2px 6px; font-size:10px;" onclick="deleteRecord('${tab}', ${idx})">Remove</button>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderScoreboards() {
+            // Coach Scoreboard Range
+            let cStart = document.getElementById('coach-board-start').value;
+            let cEnd = document.getElementById('coach-board-end').value;
+
+            let coachHtml = "";
+            let coachAverages = {};
+            ['Leo', 'Grace'].forEach(coach => {
+                let rows = dbData[coach] || [];
+                let totalC = 0, sumRate = 0, countRate = 0;
+                rows.forEach(r => {
+                    let rDate = parseExcelDate(r[0]) || '';
+                    if(!cStart || !cEnd || (rDate >= cStart && rDate <= cEnd)) {
+                        totalC++;
+                        let rateStr = String(r[9] || '').toUpperCase().trim();
+                        if(rateStr && !rateStr.includes('NO RA')) {
+                            let val = Number(rateStr.split('/')[0]);
+                            if(!isNaN(val) && val > 0) {
+                                sumRate += val;
+                                countRate++;
+                            }
+                        }
+                    }
+                });
+                let avg = countRate > 0 ? (sumRate / countRate) : 0;
+                coachAverages[coach] = avg;
+                let avgStr = countRate > 0 ? avg.toFixed(1) + '%' : 'N/A';
+                coachHtml += `<tr>
+                    <td><b>Coach: ${coach}</b></td>
+                    <td>${totalC}</td>
+                    <td style="color:var(--success); font-weight:700;">${avgStr}</td>
+                    <td><span class="badge badge-safe">Custom Period</span></td>
+                </tr>`;
+            });
+            document.getElementById('coachboard-table').innerHTML = coachHtml;
+
+            // AE Scoreboard Range
+            let aeStart = document.getElementById('ae-board-start').value;
+            let aeEnd = document.getElementById('ae-board-end').value;
+
+            let aeHtml = "";
+            let aeAverages = {};
+            ['Ashely', 'Mia'].forEach(ae => {
+                let rows = dbData[ae] || [];
+                let totalR = 0, sumRate = 0, countRate = 0;
+                rows.forEach(r => {
+                    let rDate = parseExcelDate(r[0]) || '';
+                    if(!aeStart || !aeEnd || (rDate >= aeStart && rDate <= aeEnd)) {
+                        totalR++;
+                        let rateStr = (ae === 'Ashely') ? String(r[7] || '').toUpperCase().trim() : String(r[6] || '').toUpperCase().trim();
+                        if(rateStr && !rateStr.includes('NO RA')) {
+                            let val = Number(rateStr.split('/')[0]);
+                            if(!isNaN(val) && val > 0) {
+                                sumRate += val;
+                                countRate++;
+                            }
+                        }
+                    }
+                });
+                let avg = countRate > 0 ? (sumRate / countRate) : 0;
+                aeAverages[ae] = avg;
+                let avgStr = countRate > 0 ? avg.toFixed(1) + '%' : 'N/A';
+                aeHtml += `<tr>
+                    <td><b>AE: ${ae}</b></td>
+                    <td>${totalR}</td>
+                    <td style="color:var(--success); font-weight:700;">${avgStr}</td>
+                    <td><span class="badge badge-safe">Custom Period</span></td>
+                </tr>`;
+            });
+            document.getElementById('aeboard-table').innerHTML = aeHtml;
+
+            // Calculate Monthly Bonus Total
+            let monthlyBonusSum = 0;
+            let bonusRows = dbData['Bonus'] || [];
+            bonusRows.forEach(b => {
+                let amt = Number(String(b[3] || '').replace('$', '').trim()) || 0;
+                monthlyBonusSum += amt;
+            });
+            document.getElementById('stat-monthly-bonus').innerText = "$" + monthlyBonusSum;
+
+            // Calculate MVPs based on Coach active range
+            let bestCoach = Object.keys(coachAverages).reduce((a, b) => coachAverages[a] > coachAverages[b] ? a : b, "Leo");
+            let bestAe = Object.keys(aeAverages).reduce((a, b) => aeAverages[a] > aeAverages[b] ? a : b, "Ashely");
+            
+            document.getElementById('stat-coach-mvp').innerText = coachAverages[bestCoach] > 0 ? bestCoach + " (" + coachAverages[bestCoach].toFixed(1) + "%)" : "None";
+            document.getElementById('stat-ae-mvp').innerText = aeAverages[bestAe] > 0 ? bestAe + " (" + aeAverages[bestAe].toFixed(1) + "%)" : "None";
+        }
+
+        function renderAllTables() {
+            document.getElementById('leo-table').innerHTML = renderTableRows('Leo', dbData.Leo);
+            document.getElementById('grace-table').innerHTML = renderTableRows('Grace', dbData.Grace);
+            document.getElementById('ashely-table').innerHTML = renderTableRows('Ashely', dbData.Ashely);
+            document.getElementById('mia-table').innerHTML = renderTableRows('Mia', dbData.Mia);
+            renderScoreboards();
+        }
+
+        function parseExcelDate(val) {
+            if(!val) return '';
+            if(!isNaN(val) && Number(val) > 30000) {
+                let utcDays = Math.floor(val - 25569);
+                let utcValue = utcDays * 86400;
+                let dateInfo = new Date(utcValue * 1000);
+                let mm = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
+                let dd = String(dateInfo.getUTCDate()).padStart(2, '0');
+                let yyyy = dateInfo.getUTCFullYear();
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            let str = String(val).trim();
+            let parts = str.split('/');
+            if(parts.length === 3) {
+                let p0 = parts[0].padStart(2,'0');
+                let p1 = parts[1].padStart(2,'0');
+                let p2 = parts[2];
+                if(p2.length === 4) {
+                    return `${p2}-${p1}-${p0}`;
+                } else if(p0.length === 4) {
+                    return `${p0}-${p1}-${p2}`;
+                }
+            }
+            let partsDash = str.split('-');
+            if(partsDash.length === 3) {
+                if(partsDash[0].length === 4) return str;
+                if(partsDash[2].length === 4) return `${partsDash[2]}-${partsDash[1].padStart(2,'0')}-${partsDash[0].padStart(2,'0')}`;
+            }
+            return str;
+        }
+
+        function syncExcelWorkbook(type) {
+            let inputId = 'excel-file-input';
+            if(type === 'bonus') inputId = 'bonus-file-input';
+            if(type === 'deduction') inputId = 'deduction-file-input';
+
+            const fileInput = document.getElementById(inputId);
+            if(fileInput.files.length === 0) return alert('Please select an Excel file (.xlsx / .xls).');
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+
+                    workbook.SheetNames.forEach(sheetName => {
+                        let sheet = workbook.Sheets[sheetName];
+                        let jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+
+                        let formattedRows = [];
+                        jsonData.forEach((row, rIdx) => {
+                            if(rIdx === 0 && String(row[0]).toLowerCase().includes('date')) return; 
+                            if(row && row.length > 0 && row.some(cell => cell !== undefined && cell !== '')) {
+                                let stringRow = row.map((cell, cIdx) => {
+                                    if(cell === undefined || cell === '') return '';
+                                    if(cIdx === 0) return parseExcelDate(cell);
+                                    return String(cell).trim();
+                                });
+                                formattedRows.push(stringRow);
+                            }
+                        });
+
+                        if(formattedRows.length > 0) {
+                            if(type === 'calls') {
+                                let sNameLower = sheetName.toLowerCase();
+                                let targetMember = '';
+                                if(sNameLower.includes('leo')) targetMember = 'Leo';
+                                else if(sNameLower.includes('grace')) targetMember = 'Grace';
+                                else if(sNameLower.includes('ashely') || sNameLower.includes('ashley')) targetMember = 'Ashely';
+                                else if(sNameLower.includes('mia')) targetMember = 'Mia';
+
+                                if(targetMember) {
+                                    dbData[targetMember] = formattedRows;
+                                }
+                            } else if(type === 'bonus') {
+                                dbData['Bonus'] = formattedRows;
+                            } else if(type === 'deduction') {
+                                dbData['Deduction'] = formattedRows;
+                            }
+                        }
+                    });
+
+                    localStorage.setItem('assets_permanent_db', JSON.stringify(dbData));
+                    renderAllTables();
+                    renderBonusTable();
+                    renderDeductionTable();
+                    renderScoreboards();
+                } catch (err) {
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function generateCustomReport() {
+            const member = document.getElementById('rep-member').value;
+            const period = document.getElementById('rep-period').value;
+            const startDate = document.getElementById('rep-start').value;
+            const endDate = document.getElementById('rep-end').value;
+            const output = document.getElementById('report-output');
+            
+            output.style.display = 'block';
+
+            let tabsToCheck = member === 'All' ? ['Leo', 'Grace', 'Ashely', 'Mia'] : [member];
+            let periodName = period.toUpperCase();
+
+            let now = new Date("2026-10-05");
+            let todayStr = now.toISOString().split('T')[0];
+
+            function getMonthRange() {
+                let year = now.getFullYear();
+                let month = String(now.getMonth() + 1).padStart(2, '0');
+                let start = `${year}-${month}-01`;
+                let end = new Date(year, now.getMonth() + 1, 0).toISOString().split('T')[0];
+                return { start, end };
+            }
+
+            let memberStatsHtml = "";
+            let overallMatched = 0;
+            let overallSumRate = 0;
+            let overallRateCount = 0;
+            let overallNoRate = 0;
+
+            tabsToCheck.forEach(tab => {
+                let rows = dbData[tab] || [];
+                let tabMatched = 0;
+                let tabSumRate = 0;
+                let tabRateCount = 0;
+                let tabNoRate = 0;
+
+                rows.forEach(r => {
+                    let rDate = parseExcelDate(r[0]) || '';
+                    let include = true;
+                    let rateStr = '';
+                    if(tab === 'Ashely') rateStr = String(r[7] || '').toUpperCase().trim();
+                    else if(tab === 'Mia') rateStr = String(r[6] || '').toUpperCase().trim();
+                    else rateStr = String(r[9] || '').toUpperCase().trim();
+
+                    if(!rateStr || rateStr.includes('NO RA') || rateStr === '0%' || rateStr === '0') {
+                        tabNoRate++;
+                        overallNoRate++;
+                        return; 
+                    }
+
+                    if(period === 'daily') {
+                        include = (rDate === todayStr);
+                    } else if(period === 'monthly') {
+                        let mo = getMonthRange();
+                        include = (rDate >= mo.start && rDate <= mo.end);
+                    } else if(period === 'custom' || period === 'weekly') {
+                        if(startDate && endDate && rDate) {
+                            include = (rDate >= startDate && rDate <= endDate);
+                        } else { include = false; }
+                    }
+
+                    if(include) {
+                        let cleanRate = Number(rateStr.split('/')[0]) || 0;
+                        tabMatched++;
+                        overallMatched++;
+                        if(cleanRate > 0) {
+                            tabSumRate += cleanRate;
+                            tabRateCount++;
+                            overallSumRate += cleanRate;
+                            overallRateCount++;
+                        }
+                    }
+                });
+
+                let tabAvg = tabRateCount > 0 ? (tabSumRate / tabRateCount).toFixed(1) + '%' : 'N/A';
+                let adviceText = "";
+                if(tabRateCount > 0) {
+                    let avgVal = tabSumRate / tabRateCount;
+                    if(avgVal >= 98) {
+                        adviceText = `<span style="color:var(--success); font-weight:600;">✨ أداء استثنائي وممتاز جداً! استمر هكذا، أنت رائع.</span>`;
+                    } else {
+                        adviceText = `<span style="color:var(--warning); font-weight:600;">💡 حسن من نفسك الفترة القادمة لتصل للقمة، يمكنك أن تبدو أفضل بكثير!</span>`;
+                    }
+                } else {
+                    adviceText = `<span style="color:var(--text-muted);">لا توجد تقييمات كافية لهذه الفترة.</span>`;
+                }
+
+                memberStatsHtml += `
+                    <div style="background:var(--bg-dark); padding:12px; border-radius:8px; border:1px solid var(--border-green); margin-bottom:10px;">
+                        <h4 style="color:var(--success); font-size:14px; margin-bottom:6px;">👤 ${tab}</h4>
+                        <div style="display:flex; gap:15px; flex-wrap:wrap; font-size:12px; margin-bottom:6px;">
+                            <span><b>Calls Count:</b> ${tabMatched}</span>
+                            <span><b>Avg Rate:</b> ${tabAvg}</span>
+                            <span><b>No Rate:</b> ${tabNoRate}</span>
+                        </div>
+                        <div>${adviceText}</div>
+                    </div>
+                `;
+            });
+
+            let overallAvg = overallRateCount > 0 ? (overallSumRate / overallRateCount).toFixed(1) + '%' : 'N/A';
+
+            output.innerHTML = `
+                <h4 style="color:var(--success); margin-bottom:10px; font-size:15px;">📊 Professional Performance Report (${member})</h4>
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;"><b>Period Range:</b> ${periodName} | <b>Total Rated Calls:</b> ${overallMatched} | <b>Overall Team Avg:</b> ${overallAvg}</p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    ${memberStatsHtml}
+                </div>
+            `;
+        }
+
+        function copyWeeklyTeamMessage() {
+            let msg = `🚀 Assets Solutions - Team Custom Report\n\n`;
+            
+            ['Leo', 'Grace', 'Ashely', 'Mia'].forEach(member => {
+                let rows = dbData[member] || [];
+                let memberRates = [];
+                rows.forEach(r => {
+                    let rateStr = '';
+                    if(member === 'Ashely') rateStr = String(r[7] || '').toUpperCase().trim();
+                    else if(member === 'Mia') rateStr = String(r[6] || '').toUpperCase().trim();
+                    else rateStr = String(r[9] || '').toUpperCase().trim();
+
+                    if(rateStr && !rateStr.includes('NO RA')) {
+                        let val = Number(rateStr.split('/')[0]);
+                        if(!isNaN(val) && val > 0) memberRates.push(val);
+                    }
+                });
+                let avgNum = memberRates.length > 0 ? (memberRates.reduce((a,b)=>a+b,0)/memberRates.length) : 0;
+                let avgStr = memberRates.length > 0 ? avgNum.toFixed(1) + '%' : 'N/A';
+                
+                let feedback = "";
+                if(memberRates.length > 0 && avgNum >= 98) {
+                    feedback = "✨ أداء ممتاز ورائع جداً!";
+                } else {
+                    feedback = "💪 شد حيلك واجتهد أكتر الفترة الجاية لتكون أفضل!";
+                }
+
+                msg += `• ${member} ➔ Total Records: ${memberRates.length} | Avg: ${avgStr} | ${feedback}\n`;
+            });
+
+            navigator.clipboard.writeText(msg).then(() => {
+                alert('✅ Team Report copied successfully!');
+            });
+        }
+
+        window.onload = function() { 
+            applyBranding();
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        };
+    </script>
+</body>
+</html>
